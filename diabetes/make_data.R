@@ -24,7 +24,7 @@ library(haven)
 library(tidyverse)
 library(janitor)
 
-write_path <- "/Users/madisoncoots/Documents/harvard/research/race-diabetes/data/"
+write_path <- "/Users/madisoncoots/Documents/harvard/research/equitable_algorithms/data/"
 
 # 2011-2012
 download.file("https://wwwn.cdc.gov/nchs/nhanes/2011-2012/DEMO_G.XPT", demo <- tempfile(), mode="wb")
