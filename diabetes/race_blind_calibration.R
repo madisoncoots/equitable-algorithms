@@ -25,7 +25,6 @@ race_blind_calibration_plot_data <- data %>%
   filter(!is.na(risk_score),
          !is.na(est_diabetes_prob)) %>%
   select(race, risk_score, est_diabetes_prob) %>%
-  # mutate(risk_score_bin = round(risk_score, 2)) %>% 
   mutate(risk_score_bin = floor(risk_score * 100 * 2) / 2 / 100) %>% # round to the nearest 0.005
   group_by(race, risk_score_bin) %>%
   summarize(bin_avg_risk_score = mean(risk_score),
@@ -68,8 +67,7 @@ race_blind_calibration_plot_data %>%
   scale_x_continuous(labels = scales::percent) +
   coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, 0.12)) +
   theme_bw() +
-  theme(
-        legend.title = element_blank()) +
+  theme(legend.title = element_blank()) +
   scale_color_manual(values=ordered_group_color_map)
 
 ggsave(paste(save_path, "race_blind_calibration_plot.pdf", sep = ""),
