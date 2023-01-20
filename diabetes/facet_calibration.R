@@ -5,7 +5,6 @@ library(RColorBrewer)
 data <- readRDS("/Users/madisoncoots/Documents/harvard/research/race-diabetes/data/data.rds")
 save_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/diabetes/figures/"
 
-# Race blind model calibration plot (reproduction of Figure 3a)
 race_blind_model <- glm(diabetes ~ ridageyr + bmxbmi,
                         data = data,
                         family = "binomial",
@@ -21,6 +20,17 @@ race_aware_model_pred <- predict(race_aware_model, newdata = data, type = "respo
 
 race_blind_calibration_plot_data <- data %>%
   mutate(risk_score = race_blind_model_pred,
+         est_diabetes_prob = race_aware_model_pred) %>%
+  filter(!is.na(risk_score),
+         !is.na(est_diabetes_prob)) %>%
+  select(race, risk_score, est_diabetes_prob) %>%
+  mutate(risk_score_bin = floor(risk_score * 100 * 2) / 2 / 100) %>% # round to the nearest 0.005
+  group_by(race, risk_score_bin) %>%
+  summarize(bin_avg_risk_score = mean(risk_score),
+            diabetes_prev = mean(est_diabetes_prob))
+
+race_aware_calibration_plot_data <- data %>%
+  mutate(risk_score = race_aware_model_pred,
          est_diabetes_prob = race_aware_model_pred) %>%
   filter(!is.na(risk_score),
          !is.na(est_diabetes_prob)) %>%
@@ -55,13 +65,14 @@ group_color_map <- c("Asian American" = color_palette[2],
 # This provides the color map in the right order for the legend
 ordered_group_color_map <- group_color_map[line_order]
 
-race_blind_calibration_plot_data %>%
+# Race-aware plot by itself
+race_aware_calibration_plot_data %>%
   ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
   geom_line() + 
   geom_point() +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
   geom_vline(xintercept=0.015) +
-  xlab("Race-blind risk score") +
+  xlab("Race-aware risk score") +
   ylab("Diabetes rate") + 
   scale_y_continuous(labels = scales::percent) +
   scale_x_continuous(labels = scales::percent) +
@@ -70,8 +81,32 @@ race_blind_calibration_plot_data %>%
   theme(legend.title = element_blank()) +
   scale_color_manual(values=ordered_group_color_map)
 
-ggsave(paste(save_path, "race_blind_calibration_plot.pdf", sep = ""),
+ggsave(paste(save_path, "race_aware_calibration_plot.pdf", sep = ""),
        width = 5.5,
        height = 4)
 
+facet_plot_data <- bind_rows(
+  race_blind_calibration_plot_data %>% mutate(plot = "blind"),
+  race_aware_calibration_plot_data %>% mutate(plot = "aware")
+  ) %>%
+  mutate(plot = fct_recode(plot, `Race-blind model` = "blind", `Race-aware model` = "aware"))
 
+facet_plot_data %>%
+  ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
+  geom_line() + 
+  geom_point() +
+  facet_wrap(vars(fct_rev(plot))) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
+  geom_vline(xintercept=0.015) +
+  xlab("Risk score") +
+  ylab("Diabetes rate") + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(labels = scales::percent) +
+  coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, 0.12)) +
+  theme_bw() +
+  theme(legend.title = element_blank()) +
+  scale_color_manual(values=ordered_group_color_map)
+
+ggsave(paste(save_path, "facet_calibration_plot.pdf", sep = ""),
+       width = 5.5,
+       height = 4)

@@ -1,4 +1,7 @@
 library(tidyverse)
+library(RColorBrewer)
+
+save_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/diabetes/figures/"
 
 data <- readRDS("/Users/madisoncoots/Documents/harvard/research/race-diabetes/data/data.rds") %>%
   rename(doctor_diagnosis = diabetes_diagnosis) %>%
@@ -66,7 +69,7 @@ group_color_map <- c("Asian American" = color_palette[2],
 ordered_group_color_map <- group_color_map[line_order]
 
 label_bias_plot_data %>%
-  ggplot(aes(x=risk_score_bin, y=diabetes_prev, color=race)) +
+  ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
   geom_line() + 
   geom_point() +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
@@ -79,12 +82,8 @@ label_bias_plot_data %>%
   theme(legend.title = element_blank()) +
   scale_color_manual(values=ordered_group_color_map)
 
-ggsave(paste(save_path, "race_blind_calibration_plot.pdf", sep = ""),
+ggsave(paste(save_path, "label_bias_calibration_plot.pdf", sep = ""),
        width = 5.5,
        height = 4)
-
-
-
-
 
 
