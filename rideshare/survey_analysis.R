@@ -98,6 +98,11 @@ mean_pref_by_survey <- cleaned_survey_results %>%
 mean_pref_black <- mean_pref_by_survey %>%
   filter(survey_version_long == "Black clients more expensive")
 
+# Total survey responses in "Black further" survey version
+cleaned_survey_results %>%
+  filter(survey_version == "black") %>%
+  nrow()
+  
 cleaned_survey_results %>%
   filter(survey_version == "black") %>%
   count(preference_pct_black, survey_version) %>%

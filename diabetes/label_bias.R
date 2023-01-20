@@ -44,12 +44,12 @@ label_bias_plot_data %>%
   ggplot(aes(x=risk_score_bin, y=diabetes_prev, color=race)) +
   geom_line() + 
   geom_point() +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-  xlab("Risk score") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
+  xlab("Risk score based on biased label") +
   ylab("Diabetes rate") + 
   scale_y_continuous(labels = scales::percent) +
   scale_x_continuous(labels = scales::percent) +
-  coord_cartesian(xlim = c(0,0.05), ylim = c(0, 0.05)) +
+  coord_cartesian(xlim = c(0,0.05), ylim = c(0, 0.08)) +
   theme_bw() +
   theme(legend.position = c(.2, .82),
         legend.title = element_blank()) +

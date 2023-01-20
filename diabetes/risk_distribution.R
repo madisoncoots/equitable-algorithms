@@ -62,10 +62,10 @@ marginal_plot_data <- data_with_pred %>%
 #   scale_color_brewer(palette = "Set2") +
 #   coord_cartesian(xlim = c(0, 0.2))
 # 
-# conditional_plot_data <- data_with_pred %>% 
-#   filter(race == "Asian American" | race == "White American",
-#          !diabetes) %>%
-#   mutate(density = "conditional")
+conditional_plot_data <- data_with_pred %>%
+  filter(race == "Asian American" | race == "White American",
+         !diabetes) %>%
+  mutate(density = "conditional")
 # 
 # conditional_plot_data %>%
 #   ggplot(aes(x=risk_score, color=race)) +
@@ -94,7 +94,7 @@ plot_data %>%
   geom_vline(xintercept = 0.015, show.legend = FALSE) +
   facet_wrap(vars(fct_rev(density))) +
   geom_vline(data = line_annotations, aes(xintercept = incidence, color = race),
-             linetype = "dashed", show_guide = FALSE) +
+             linetype = "dashed", show.legend = FALSE) +
   xlab("Probability of having diabetes") +
   ylab("Density") + 
   scale_x_continuous(labels = scales::percent,
@@ -109,5 +109,5 @@ plot_data %>%
         legend.text = element_text(size = 9), panel.spacing = unit(1.5, "lines"), 
         plot.margin = margin(10, 10, 10, 10, "pt")) +
   scale_color_brewer(palette = "Set2") +
-  coord_cartesian(xlim = c(0, 0.2))
+  coord_cartesian(xlim = c(0, .8))
 
