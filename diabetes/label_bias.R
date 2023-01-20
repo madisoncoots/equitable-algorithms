@@ -79,6 +79,9 @@ label_bias_plot_data %>%
   theme(legend.title = element_blank()) +
   scale_color_manual(values=ordered_group_color_map)
 
+ggsave(paste(save_path, "race_blind_calibration_plot.pdf", sep = ""),
+       width = 5.5,
+       height = 4)
 
 
 
