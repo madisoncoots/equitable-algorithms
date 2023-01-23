@@ -9,8 +9,6 @@ library(tidycensus)
 save_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/diabetes/figures/"
 data_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/county_samples.csv"
 
-register_google(key = "AIzaSyCz3G2llgSQlpJfcEkoMYhmXAKUK_N3zgs")
-
 county_samples <- read_csv(data_path)
 
 county_samples_geo <- st_as_sf(county_samples, coords = c("longitude", "latitude"), 
