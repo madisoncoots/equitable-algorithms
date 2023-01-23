@@ -110,3 +110,30 @@ facet_plot_data %>%
 ggsave(paste(save_path, "facet_calibration_plot.pdf", sep = ""),
        width = 5.5,
        height = 4)
+
+# Trying geom_smooth for the y-axis!!!! ---------------------------------------
+# -----------------------------------------------------------------------------
+race_aware_calibration_plot_data <- data %>%
+  mutate(risk_score = race_aware_model_pred,
+         diabetes = data$diabetes) %>%
+  filter(!is.na(risk_score),
+         !is.na(diabetes)) %>%
+  select(race, risk_score, diabetes)
+
+race_aware_calibration_plot_data %>%
+  ggplot(aes(x=risk_score, y=diabetes, color=race, succ=TRUE, fail=FALSE)) +
+  geom_smooth(method="glm",
+              method.args=list(family="binomial"),
+              se = FALSE) + 
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
+  geom_vline(xintercept=0.015) +
+  xlab("Risk score") +
+  ylab("Diabetes rate") + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(labels = scales::percent) +
+  coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, .1)) +
+  theme_bw() +
+  theme(legend.title = element_blank())
+
+
+
