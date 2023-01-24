@@ -23,18 +23,22 @@ doctor_diagnosis_model <- glm(doctor_diagnosis ~ ridageyr + bmxbmi + race,
                              family = "binomial",
                              weights = round(wtmec8yr/1000))
 
-true_label_model <- glm(ground_truth_diabetes ~ ridageyr + bmxbmi + race,
-                        data = data,
-                        family = "binomial",
-                        weights = round(wtmec8yr/1000))
+full_model_formula <- diabetes ~ race + ridageyr + bmxbmi + gender +
+  whd140 + bmxwt + bmxht + bmxwaist + relatives_had_diabetes + felt_depressed +
+  income + health_insurance  + food_security
+
+full_model <- glm(full_model_formula,
+                  data = data,
+                  family = "binomial",
+                  weights = round(wtmec8yr/1000))
 
 doctor_diagnosis_model_pred <- predict(doctor_diagnosis_model, newdata = data, type = "response")
-true_label_model_pred <- predict(true_label_model, newdata = data, type = "response")
+full_model_pred <- predict(full_model, newdata = data, type = "response")
 
 # Label bias calibration plot data
 label_bias_plot_data <- data %>%
   mutate(risk_score = doctor_diagnosis_model_pred,
-         est_diabetes_prob = true_label_model_pred) %>%
+         est_diabetes_prob = full_model_pred) %>%
   filter(!is.na(risk_score),
          !is.na(est_diabetes_prob)) %>%
   select(race, risk_score, est_diabetes_prob) %>%

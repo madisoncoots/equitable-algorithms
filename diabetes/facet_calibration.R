@@ -118,5 +118,5 @@ facet_plot_data %>%
   scale_color_manual(values=ordered_group_color_map)
 
 ggsave(paste(save_path, "facet_calibration_plot.pdf", sep = ""),
-       width = 7,
-       height = 4)
+       width = 6,
+       height = 3)
