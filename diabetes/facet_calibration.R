@@ -15,12 +15,22 @@ race_aware_model <- glm(diabetes ~ ridageyr + bmxbmi + race,
                         family = "binomial",
                         weights = round(wtmec8yr/1000))
 
+full_model <- diabetes ~ race + ridageyr + bmxbmi + gender +
+  whd140 + bmxwt + bmxht + bmxwaist + relatives_had_diabetes + felt_depressed +
+  income + health_insurance  + food_security
+
+race_aware_model_plus <- glm(full_model,
+                             data = data,
+                             family = "binomial",
+                             weights = round(wtmec8yr/1000))
+
 race_blind_model_pred <- predict(race_blind_model, newdata = data, type = "response")
 race_aware_model_pred <- predict(race_aware_model, newdata = data, type = "response")
+full_model_pred <- predict(race_aware_model_plus, newdata = data, type = "response")
 
 race_blind_calibration_plot_data <- data %>%
   mutate(risk_score = race_blind_model_pred,
-         est_diabetes_prob = race_aware_model_pred) %>%
+         est_diabetes_prob = full_model_pred) %>%
   filter(!is.na(risk_score),
          !is.na(est_diabetes_prob)) %>%
   select(race, risk_score, est_diabetes_prob) %>%
@@ -31,7 +41,7 @@ race_blind_calibration_plot_data <- data %>%
 
 race_aware_calibration_plot_data <- data %>%
   mutate(risk_score = race_aware_model_pred,
-         est_diabetes_prob = race_aware_model_pred) %>%
+         est_diabetes_prob = full_model_pred) %>%
   filter(!is.na(risk_score),
          !is.na(est_diabetes_prob)) %>%
   select(race, risk_score, est_diabetes_prob) %>%
@@ -108,32 +118,5 @@ facet_plot_data %>%
   scale_color_manual(values=ordered_group_color_map)
 
 ggsave(paste(save_path, "facet_calibration_plot.pdf", sep = ""),
-       width = 5.5,
+       width = 7,
        height = 4)
-
-# Trying geom_smooth for the y-axis!!!! ---------------------------------------
-# -----------------------------------------------------------------------------
-race_aware_calibration_plot_data <- data %>%
-  mutate(risk_score = race_aware_model_pred,
-         diabetes = data$diabetes) %>%
-  filter(!is.na(risk_score),
-         !is.na(diabetes)) %>%
-  select(race, risk_score, diabetes)
-
-race_aware_calibration_plot_data %>%
-  ggplot(aes(x=risk_score, y=diabetes, color=race, succ=TRUE, fail=FALSE)) +
-  geom_smooth(method="glm",
-              method.args=list(family="binomial"),
-              se = FALSE) + 
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
-  geom_vline(xintercept=0.015) +
-  xlab("Risk score") +
-  ylab("Diabetes rate") + 
-  scale_y_continuous(labels = scales::percent) +
-  scale_x_continuous(labels = scales::percent) +
-  coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, .1)) +
-  theme_bw() +
-  theme(legend.title = element_blank())
-
-
-
