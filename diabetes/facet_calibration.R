@@ -86,14 +86,14 @@ ordered_group_color_map <- group_color_map[line_order]
 # Race-aware plot by itself
 race_aware_calibration_plot_data %>%
   ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
+  geom_vline(xintercept=0.015) +
   geom_line() + 
   geom_point() +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "darkgray") +
-  geom_vline(xintercept=0.015) +
-  xlab("Race-aware risk score") +
-  ylab("Diabetes rate") + 
+  xlab("Risk score") +
+  ylab("") + 
   scale_y_continuous(labels = scales::percent,
-                     breaks = seq(0.0, 0.1, 0.02)) +
+                     breaks = seq(0.0, 0.12, 0.02)) +
   scale_x_continuous(labels = scales::percent) +
   coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, 0.12)) +
   theme_bw() +
@@ -108,11 +108,11 @@ ggsave(paste(save_path, "race_aware_calibration_plot.pdf", sep = ""),
 # Race-blind plot by itself
 race_blind_calibration_plot_data %>%
   ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
+  geom_vline(xintercept=0.015) +
   geom_line() + 
   geom_point() +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "darkgray") +
-  geom_vline(xintercept=0.015) +
-  xlab("Race-blind risk score") +
+  xlab("Risk score") +
   ylab("Diabetes rate") + 
   scale_y_continuous(labels = scales::percent,
                      breaks = seq(0.0, 0.12, 0.02)) +
