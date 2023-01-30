@@ -42,7 +42,7 @@ label_bias_plot_data <- data %>%
   filter(!is.na(risk_score),
          !is.na(est_diabetes_prob)) %>%
   select(race, risk_score, est_diabetes_prob) %>%
-  mutate(risk_score_bin = floor(risk_score * 100 * 2) / 2 / 100) %>% # round to the nearest 0.005
+  mutate(risk_score_bin = floor((risk_score  + 0.0025) * 100 * 2) / 2 / 100) %>% # round to the nearest 0.005
   group_by(race, risk_score_bin) %>%
   summarize(bin_avg_risk_score = mean(risk_score),
             diabetes_prev = mean(est_diabetes_prob))
@@ -83,11 +83,12 @@ label_bias_plot_data %>%
   scale_x_continuous(labels = scales::percent) +
   coord_cartesian(xlim = c(0,risk_score_upper_bound), ylim = c(0, 0.08)) +
   theme_bw() +
-  theme(legend.title = element_blank()) +
+  theme(legend.title = element_blank(),
+        legend.position = c(0.25, 0.82)) +
   scale_color_manual(values=ordered_group_color_map)
 
 ggsave(paste(save_path, "label_bias_calibration_plot.pdf", sep = ""),
-       width = 5.5,
+       width = 4,
        height = 4)
 
 
