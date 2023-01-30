@@ -17,6 +17,12 @@ data_with_pred <- data %>%
   mutate(risk_score = model_pred) %>%
   filter(!is.na(risk_score))
 
+data_with_pred %>%
+  group_by(race) %>%
+  filter(!is.na(race)) %>%
+  summarize(med_risk_score = median(risk_score),
+            pctile = quantile(risk_score, 0.25))
+
 line_annotations <- data %>%
   group_by(race) %>%
   filter(!is.na(race)) %>%

@@ -28,13 +28,21 @@ race_blind_model_pred <- predict(race_blind_model, newdata = data, type = "respo
 race_aware_model_pred <- predict(race_aware_model, newdata = data, type = "response")
 full_model_pred <- predict(race_aware_model_plus, newdata = data, type = "response")
 
+# Counting the number of data points
+data %>%
+  mutate(risk_score = race_aware_model_pred,
+         est_diabetes_prob = full_model_pred) %>%
+  filter(!is.na(risk_score),
+         !is.na(est_diabetes_prob)) %>%
+  nrow()
+
 race_blind_calibration_plot_data <- data %>%
   mutate(risk_score = race_blind_model_pred,
          est_diabetes_prob = full_model_pred) %>%
   filter(!is.na(risk_score),
          !is.na(est_diabetes_prob)) %>%
   select(race, risk_score, est_diabetes_prob) %>%
-  mutate(risk_score_bin = floor(risk_score * 100 * 2) / 2 / 100) %>% # round to the nearest 0.005
+  mutate(risk_score_bin = floor((risk_score  + 0.0025) * 100 * 2) / 2 / 100) %>% # round to the nearest 0.005
   group_by(race, risk_score_bin) %>%
   summarize(bin_avg_risk_score = mean(risk_score),
             diabetes_prev = mean(est_diabetes_prob))
@@ -45,7 +53,7 @@ race_aware_calibration_plot_data <- data %>%
   filter(!is.na(risk_score),
          !is.na(est_diabetes_prob)) %>%
   select(race, risk_score, est_diabetes_prob) %>%
-  mutate(risk_score_bin = floor(risk_score * 100 * 2) / 2 / 100) %>% # round to the nearest 0.005
+  mutate(risk_score_bin = floor((risk_score  + 0.0025) * 100 * 2) / 2 / 100) %>% # round to the nearest 0.005
   group_by(race, risk_score_bin) %>%
   summarize(bin_avg_risk_score = mean(risk_score),
             diabetes_prev = mean(est_diabetes_prob))
@@ -80,20 +88,44 @@ race_aware_calibration_plot_data %>%
   ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
   geom_line() + 
   geom_point() +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "darkgray") +
   geom_vline(xintercept=0.015) +
   xlab("Race-aware risk score") +
   ylab("Diabetes rate") + 
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent,
+                     breaks = seq(0.0, 0.1, 0.02)) +
   scale_x_continuous(labels = scales::percent) +
   coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, 0.12)) +
   theme_bw() +
-  theme(legend.title = element_blank()) +
+  theme(legend.title = element_blank(),
+        legend.position = c(0.7, 0.78)) +
   scale_color_manual(values=ordered_group_color_map)
 
 ggsave(paste(save_path, "race_aware_calibration_plot.pdf", sep = ""),
-       width = 5.5,
-       height = 4)
+       width = 3.5,
+       height = 3.5)
+
+# Race-blind plot by itself
+race_blind_calibration_plot_data %>%
+  ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
+  geom_line() + 
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "darkgray") +
+  geom_vline(xintercept=0.015) +
+  xlab("Race-blind risk score") +
+  ylab("Diabetes rate") + 
+  scale_y_continuous(labels = scales::percent,
+                     breaks = seq(0.0, 0.12, 0.02)) +
+  scale_x_continuous(labels = scales::percent) +
+  coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, 0.12)) +
+  theme_bw() +
+  theme(legend.title = element_blank(),
+        legend.position = "none") +
+  scale_color_manual(values=ordered_group_color_map)
+
+ggsave(paste(save_path, "race_blind_calibration_plot.pdf", sep = ""),
+       width = 3.5,
+       height = 3.5)
 
 facet_plot_data <- bind_rows(
   race_blind_calibration_plot_data %>% mutate(plot = "blind"),
@@ -106,7 +138,7 @@ facet_plot_data %>%
   geom_line() + 
   geom_point() +
   facet_wrap(vars(fct_rev(plot))) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "darkgray") +
   geom_vline(xintercept=0.015) +
   xlab("Risk score") +
   ylab("Diabetes rate") + 
