@@ -104,6 +104,20 @@ make_density_polygon_data <- function(data, facet_name) {
 }
 
 
+# This chunk determines the vertical order of the lines in the plot
+# so that we can have the order of the lines in the legend reflect
+# the order of the lines in the plot so that it is easier to read
+risk_score_upper_bound <- 0.05
+line_order <- race_blind_calibration_plot_data %>%
+  # Make sure x-range lines up with what is visualized in plot
+  filter(risk_score_bin < risk_score_upper_bound) %>%
+  group_by(race) %>%
+  summarize(mean_prev = mean(diabetes_prev)) %>%
+  arrange(as.character(race)) %>%
+  mutate(alph_index = row_number()) %>%
+  arrange(desc(mean_prev)) %>%
+  pull(alph_index)
+
 # This is the color palette used for the plot
 color_palette <- brewer.pal(n=4,"Set2")
 # This maps colors to groups
@@ -129,8 +143,6 @@ polygon_data <- bind_rows(marginal_polygon_data, conditional_polygon_data) %>%
 
 marginal_plot_data %>%
   ggplot(aes(x=risk_score)) +
-  geom_polygon(data = marginal_polygon_data, aes(x = x, y = y, fill = race),
-               alpha = 0.2) +
   geom_density(aes(weight=round(wtmec8yr/1000), color = race)) +
   geom_vline(xintercept = 0.015) +
   geom_vline(data = line_annotations, aes(xintercept = incidence, color = race),
@@ -157,8 +169,6 @@ ggsave(paste(save_path, "marginal_risk_distribution.pdf", sep = ""),
 
 conditional_plot_data %>%
   ggplot(aes(x=risk_score, color=race)) +
-  geom_polygon(data = conditional_polygon_data, aes(x = x, y = y, fill = race),
-                              alpha = 0.2) +
   geom_density(aes(weight=round(wtmec8yr/1000))) +
   geom_vline(xintercept = 0.015) +
   xlab("Probability of having diabetes") +
@@ -171,9 +181,7 @@ conditional_plot_data %>%
         axis.ticks.y=element_blank(),
         axis.text.y=element_blank()) +
     scale_color_manual(values=group_color_map) +
-    scale_fill_manual(values=group_color_map) +
-  coord_cartesian(xlim = c(0, 0.2), expand = FALSE, y = c(0, 13)) +
-  guides(colour = guide_legend(override.aes = list(alpha = 0.2)))
+  coord_cartesian(xlim = c(0, 0.2), expand = FALSE, y = c(0, 13))
 
 ggsave(paste(save_path, "conditional_risk_distribution.pdf", sep = ""),
        width = 5.5,
