@@ -24,7 +24,7 @@ library(haven)
 library(tidyverse)
 library(janitor)
 
-write_path <- "/Users/madisoncoots/Documents/harvard/research/equitable_algorithms/data/"
+write_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/"
 
 # 2011-2012
 download.file("https://wwwn.cdc.gov/nchs/nhanes/2011-2012/DEMO_G.XPT", demo <- tempfile(), mode="wb")
@@ -281,13 +281,13 @@ data <- raw_demographics_all %>%
          bmxbmi <= 50) %>%
   # Making the race variable more readable
   mutate(
-    race = case_when(ridreth3 == 1 | ridreth3 == 2 ~ "Hispanic American",
-                     ridreth3 == 3 ~ "White American",
-                     ridreth3 == 4 ~ "Black American",
-                     ridreth3 == 6 ~ "Asian American"),
+    race = case_when(ridreth3 == 1 | ridreth3 == 2 ~ "Hispanic",
+                     ridreth3 == 3 ~ "White",
+                     ridreth3 == 4 ~ "Black",
+                     ridreth3 == 6 ~ "Asian"),
     race = factor(race),
     # Re-leveling the race factor, so that White is base level (as in paper)
-    race = relevel(race, ref = "White American")) %>%
+    race = relevel(race, ref = "White")) %>%
   # Recoding the gender covariate
   mutate(gender = case_when(riagendr == 2 ~ "Woman",
                             riagendr == 1 ~ "Man",
@@ -372,4 +372,4 @@ data <- raw_demographics_all %>%
   # Normalizing weights for numerical stability in regressions
   mutate(normalized_weights = wtmec8yr / sum(wtmec8yr))
 
-saveRDS(paste(write_path, "data.rds", sep = ""))
+saveRDS(data, file = paste(write_path, "data.rds", sep = ""))
