@@ -3,6 +3,8 @@ library(readr)
 library(geosphere)
 library(measurements)
 
+save_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/rideshare/figures/"
+
 # data_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/county_samples.csv"
 # 
 # county_samples <- read_csv(data_path)
@@ -167,14 +169,14 @@ survey_points %>%
   ggplot(aes(x = pct_rides_black_clients, y = new_appearances)) +
   # geom_smooth(aes(color = "Smooth"), size = 0.5, se = FALSE) +
   # geom_line(aes(color = "No smoothing")) + # No smoothing
-  geom_line(data = spline_int, aes(x=x, y=y), color = "#00BFC4") +
-  geom_segment(aes(x = 0.1, y = 0, xend = 0.1, yend = 680), , color = "gray", linetype = "dashed", size = 0.3) +
-  geom_segment(aes(x = 0.3, y = 0, xend = 0.3, yend = 730), , color = "gray", linetype = "dashed", size = 0.3) +
-  geom_segment(aes(x = 0.5, y = 0, xend = 0.5, yend = 710), , color = "gray", linetype = "dashed", size = 0.3) +
-  geom_segment(aes(x = 0.7, y = 0, xend = 0.7, yend = 620), , color = "gray", linetype = "dashed", size = 0.3) +
-  geom_segment(aes(x = 0.9, y = 0, xend = 0.9, yend = 520), , color = "gray", linetype = "dashed", size = 0.3) +
+  geom_line(data = spline_int, aes(x=x, y=y), color = "dimgray") +
+  geom_segment(aes(x = 0.1, y = 0, xend = 0.1, yend = 680), color = "gray", linetype = "dashed", linewidth = 0.3) +
+  geom_segment(aes(x = 0.3, y = 0, xend = 0.3, yend = 730), color = "gray", linetype = "dashed", linewidth = 0.3) +
+  geom_segment(aes(x = 0.5, y = 0, xend = 0.5, yend = 710), color = "gray", linetype = "dashed", linewidth = 0.3) +
+  geom_segment(aes(x = 0.7, y = 0, xend = 0.7, yend = 620), color = "gray", linetype = "dashed", linewidth = 0.3) +
+  geom_segment(aes(x = 0.9, y = 0, xend = 0.9, yend = 520), color = "gray", linetype = "dashed", linewidth = 0.3) +
   geom_point(data = survey_points, aes(x = pct_rides_black_clients, y = new_appearances)) +
-  annotate("text", x = 0.3 + 0.23, y = 730 + 15, label = "Maximum appearances (approx.)") + 
+  annotate("text", x = 0.3 + 0.23, y = 730 + 10, label = "Maximum appearances (approx.)") + 
   annotate("text", x = 0.5 + 0.15, y = 700 + 15, label = "Demographic parity") + 
   ylab("Number of additional appearances") +
   xlab("Percentage of rides offered to Black clients") +
@@ -185,5 +187,8 @@ survey_points %>%
   theme_bw() + 
   theme(legend.position = c(.84, .7),
         legend.title = element_blank())
- 
+
+ggsave(paste(save_path, "pareto_frontier.pdf", sep = ""),
+       width = 5,
+       height = 5) 
 
