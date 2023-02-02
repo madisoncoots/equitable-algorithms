@@ -5,6 +5,7 @@ library(ggplot2)
 library(lubridate)
 
 data_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/Nudge_Preferences_Expanded_Survey_December_12_2022_10.07.csv"
+save_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/rideshare/figures/"
 
 final_survey_date <- mdy("12/6/22") # this is when we started the final survey
 
@@ -130,7 +131,7 @@ figure_data <- cleaned_survey_results %>%
   
 figure_data %>%
   ggplot(aes(x = preference_pct_black, y = proportion)) +
-  geom_bar(stat='identity', width = 10, show.legend = FALSE, fill = "#00BFC4") +
+  geom_bar(stat='identity', width = 10, show.legend = FALSE, fill = "dimgray") +
   # facet_wrap(.~temp) +
   geom_vline(data=mean_pref_black, aes(xintercept=mean_pref, group = survey_version_long), linetype="dashed") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),
@@ -141,14 +142,6 @@ figure_data %>%
                      name = "Percentage of rides offered to Black clients") +
   theme_bw()
 
-toy_data <- bind_rows(data.frame(x = c(1,2,3),
-                       y = c(4,5,6),
-                       plot_label = rep("Left", 3)),
-                      data.frame(x = c(1,2,3),
-                                 y = c(4,5,6),
-                                 plot_label = rep("Right", 3)))
-
-ggplot(data = toy_data) +
-  geom_point(aes(x = x, y = y)) +
-  facet_wrap(.~plot_label) +
-  geom_line(data = toy_data %>% filter(plot_label == "Right"), aes(x = x, y = y))
+ggsave(paste(save_path, "facet_calibration_plot.pdf", sep = ""),
+       width = 5.25,
+       height = 5)
