@@ -1,9 +1,9 @@
 library(tidyverse)
-library(RColorBrewer)
+source("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/diabetes/colors.R")
 
 save_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/diabetes/figures/"
 
-data <- readRDS("/Users/madisoncoots/Documents/harvard/research/race-diabetes/data/data.rds") %>%
+data <- readRDS("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/data.rds") %>%
   rename(doctor_diagnosis = diabetes_diagnosis) %>%
   mutate(blood_test_diagnosis = if_else(a1c=="[6.5,1e+03)" &!is.na(a1c), TRUE, FALSE),
          doctor_diagnosis = doctor_diagnosis == 1,
@@ -61,16 +61,8 @@ line_order <- label_bias_plot_data %>%
   arrange(desc(mean_prev)) %>%
   pull(alph_index)
 
-# This is the color palette used for the plot
-color_palette <- brewer.pal(n=4,"Set2")
-# This maps colors to groups
-group_color_map <- c("Asian American" = color_palette[2],
-                     "Black American" = color_palette[3],
-                     "Hispanic American" = color_palette[4],
-                     "White American" = color_palette[1])
-
 # This provides the color map in the right order for the legend
-ordered_group_color_map <- group_color_map[line_order]
+ordered_group_names <- group_names[line_order]
 
 label_bias_plot_data %>%
   ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
@@ -84,8 +76,9 @@ label_bias_plot_data %>%
   coord_cartesian(xlim = c(0,risk_score_upper_bound), ylim = c(0, 0.08)) +
   theme_bw() +
   theme(legend.title = element_blank(),
-        legend.position = c(0.25, 0.82)) +
-  scale_color_manual(values=ordered_group_color_map)
+        legend.position = c(0.17, 0.82)) +
+  scale_color_manual(values=ordered_group_color_map,
+                     breaks=ordered_group_names)
 
 ggsave(paste(save_path, "label_bias_calibration_plot.pdf", sep = ""),
        width = 4,
