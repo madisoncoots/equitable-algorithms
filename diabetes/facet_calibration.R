@@ -156,8 +156,8 @@ combined_risk_scores <-
   #                        pattern_spacing = 0.05,
   #                        # pattern_key_scale_factor = 0.5,
   #                        pattern_size = 2) +
-  annotate("text", x = 0.016, y = 0.075, label = "Expected to\nbenefit from screening", hjust = 0, size = 3, vjust = 1) + 
-  annotate("text", x = 0.014, y = 0.075, label = "Not expected to\nbenefit from screening", hjust = 1, size = 3, vjust = 1) + 
+  annotate("label", x = 0.016, y = 0.075, label = "Expected to\nbenefit from screening", hjust = 0, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
+  annotate("label", x = 0.014, y = 0.075, label = "Not expected to\nbenefit from screening", hjust = 1, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
   xlab("Risk score") +
   ylab("Population proportion") + 
   geom_vline(xintercept=0.015) +

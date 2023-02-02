@@ -1,5 +1,6 @@
 library(tidyverse)
 library(RColorBrewer)
+source("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/diabetes/colors.R")
 
 data <- readRDS("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/data.rds")
 save_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/diabetes/figures/"
@@ -32,22 +33,22 @@ line_annotations <- data %>%
 
 make_density_polygon_data <- function(data, facet_name) {
   white_risk_score <- data %>%
-    filter(race == "White American") %>%
+    filter(race == "White") %>%
     select(risk_score, wtmec8yr) %>%
     mutate(normalized_weights = wtmec8yr / sum(wtmec8yr))
   
   black_risk_score <- data %>%
-    filter(race == "Black American") %>%
+    filter(race == "Black") %>%
     select(risk_score, wtmec8yr) %>%
     mutate(normalized_weights = wtmec8yr / sum(wtmec8yr))
   
   hispanic_risk_score <- data %>%
-    filter(race == "Hispanic American") %>%
+    filter(race == "Hispanic") %>%
     select(risk_score, wtmec8yr) %>%
     mutate(normalized_weights = wtmec8yr / sum(wtmec8yr))
   
   asian_risk_score <- data %>%
-    filter(race == "Asian American") %>%
+    filter(race == "Asian") %>%
     select(risk_score, wtmec8yr) %>%
     mutate(normalized_weights = wtmec8yr / sum(wtmec8yr))
   
@@ -71,22 +72,22 @@ make_density_polygon_data <- function(data, facet_name) {
     data.frame(
       x = white_density$x,
       y = white_density$y,
-      race = "White American"
+      race = "White"
     ),
     data.frame(
       x = black_density$x,
       y = black_density$y,
-      race = "Black American"
+      race = "Black"
     ),
     data.frame(
       x = hispanic_density$x,
       y = hispanic_density$y,
-      race = "Hispanic American"
+      race = "Hispanic"
     ),
     data.frame(
       x = asian_density$x,
       y = asian_density$y,
-      race = "Asian American"
+      race = "Asian"
     )
   ) %>%
     mutate(y = if_else(x > 0.015, y, 0)) %>%
@@ -94,184 +95,176 @@ make_density_polygon_data <- function(data, facet_name) {
     # from the x-axis to the top of the distribution (otherwise 
     # you get a diagonal line from the last y = 0 point on the x-axis
     # to the next non-zero point where x > 0.015) 
-    bind_rows(data.frame(x = 0.015, y = 0, race = "White American"),
-              data.frame(x = 0.015, y = 0, race = "Black American"),
-              data.frame(x = 0.015, y = 0, race = "Hispanic American"),
-              data.frame(x = 0.015, y = 0, race = "Asian American")) %>%
+    bind_rows(data.frame(x = 0.015, y = 0, race = "White"),
+              data.frame(x = 0.015, y = 0, race = "Black"),
+              data.frame(x = 0.015, y = 0, race = "Hispanic"),
+              data.frame(x = 0.015, y = 0, race = "Asian")) %>%
     arrange(x, y) %>%
     mutate(density = facet_name)
   return(densities)
 }
 
 
-# This chunk determines the vertical order of the lines in the plot
-# so that we can have the order of the lines in the legend reflect
-# the order of the lines in the plot so that it is easier to read
-risk_score_upper_bound <- 0.05
-line_order <- race_blind_calibration_plot_data %>%
-  # Make sure x-range lines up with what is visualized in plot
-  filter(risk_score_bin < risk_score_upper_bound) %>%
-  group_by(race) %>%
-  summarize(mean_prev = mean(diabetes_prev)) %>%
-  arrange(as.character(race)) %>%
-  mutate(alph_index = row_number()) %>%
-  arrange(desc(mean_prev)) %>%
-  pull(alph_index)
-
-# This is the color palette used for the plot
-color_palette <- brewer.pal(n=4,"Set2")
-# This maps colors to groups
-group_color_map <- c("Asian American" = color_palette[2],
-                     "Black American" = color_palette[3],
-                     "Hispanic American" = color_palette[4],
-                     "White American" = color_palette[1])
 
 marginal_plot_data <- data_with_pred %>% 
   mutate(density = "marginal")
 conditional_plot_data <- data_with_pred %>%
-  # filter(race == "Asian American" | race == "White American") %>%
-  filter(!diabetes) %>%
+  filter(diabetes) %>%
   mutate(density = "conditional")
 
 marginal_polygon_data <- make_density_polygon_data(data_with_pred, "marginal")
 conditional_polygon_data <- make_density_polygon_data(data_with_pred %>%
-                                                        filter(!diabetes), "conditional")
+                                                        filter(diabetes), "conditional")
 
 polygon_data <- bind_rows(marginal_polygon_data, conditional_polygon_data) %>%
-  mutate(density = fct_recode(density, `All patients` = "marginal", `Patients without diabetes` = "conditional"))
+  mutate(density = fct_recode(density, `All patients` = "marginal", `Patients with diabetes` = "conditional"))
 
 
-marginal_plot_data %>%
-  ggplot(aes(x=risk_score)) +
-  geom_density(aes(weight=round(wtmec8yr/1000), color = race)) +
-  geom_vline(xintercept = 0.015) +
-  geom_vline(data = line_annotations, aes(xintercept = incidence, color = race),
-             linetype = "dashed", show.legend = FALSE) +
-  coord_cartesian(xlim = c(0, 0.2), expand = FALSE, y = c(0, 13)) +
-  xlab("Probability of having diabetes") +
-  ylab("Density") +
-  scale_x_continuous(labels = scales::percent,
-                     expand = c(0,0)) +
-  theme_bw() +
-  theme(legend.position = "none",
-        legend.title = element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.text.y=element_blank()) +
-  scale_color_manual(values=group_color_map) +
-  scale_fill_manual(values=group_color_map) +
-  guides(colour = guide_legend(override.aes = list(alpha = 0.2)))
+# This chunk determines the vertical order of the lines in the plot
+# so that we can have the order of the lines in the legend reflect
+# the order of the lines in the plot so that it is easier to read
+# risk_score_upper_bound <- 0.05
+# line_order <- marginal_polygon_data %>%
+#   # Make sure x-range lines up with what is visualized in plot
+#   filter(x < risk_score_upper_bound) %>%
+#   group_by(race) %>%
+#   summarize(mean_val = mean(y)) %>%
+#   arrange(as.character(race)) %>%
+#   mutate(alph_index = row_number()) %>%
+#   arrange(desc(mean_val)) %>%
+#   pull(alph_index)
 
-ggsave(paste(save_path, "marginal_risk_distribution.pdf", sep = ""),
-       width = 5.5,
-       height = 4)
+# This provides the color map in the right order for the legend
+# ordered_group_color_map <- group_color_map[line_order]
+# ordered_group_names <- group_names[line_order]
+
+# The quantile that corresponds to 1.5% threshold on the entire population
+quantile_for_thresh_whole_pop <- data_with_pred %>%
+  mutate(above_thresh = risk_score >= 0.015) %>%
+  summarize(sum(above_thresh) / n()) %>%
+  pull()
+
+race_group_thresh <- data_with_pred %>%
+  group_by(race) %>%
+  arrange(desc(risk_score)) %>%
+  mutate(cum_proportion = row_number() / n(),
+         above_general_pop_quantile = cum_proportion <= quantile_for_thresh_whole_pop) %>%
+  summarize(race_group_thresh = min(risk_score[above_general_pop_quantile])) %>%
+  mutate(density = "All patients")
+
+fnr_whole_pop <- data_with_pred %>%
+  filter(diabetes) %>%
+  mutate(screening_decision = risk_score >= 0.015,
+         false_negative = !screening_decision) %>%
+  summarize(sum(false_negative) / n()) %>%
+  pull()
+
+race_group_thresh_equalized_fnr <- data_with_pred %>%
+  filter(diabetes) %>%
+  group_by(race) %>%
+  arrange(risk_score) %>%
+  mutate(fnr = row_number() / n(),
+         below_fnr_whole_pop = fnr <= fnr_whole_pop) %>%
+  summarize(race_group_thresh = max(risk_score[below_fnr_whole_pop])) %>%
+  mutate(density = "Patients with diabetes")
+  
+  
 
 # ------------------------------------------------------------------------------
 
-conditional_plot_data %>%
-  ggplot(aes(x=risk_score, color=race)) +
-  geom_density(aes(weight=round(wtmec8yr/1000))) +
-  geom_vline(xintercept = 0.015) +
-  xlab("Probability of having diabetes") +
-  ylab("Density") +
-  scale_x_continuous(labels = scales::percent,
-                     expand = c(0,0)) +
-  theme_bw() +
-  theme(legend.position = c(.8, .8),
-        legend.title = element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.text.y=element_blank()) +
-    scale_color_manual(values=group_color_map) +
-  coord_cartesian(xlim = c(0, 0.2), expand = FALSE, y = c(0, 13))
 
-ggsave(paste(save_path, "conditional_risk_distribution.pdf", sep = ""),
-       width = 5.5,
-       height = 4)
-
-# plot_data <- bind_rows(marginal_plot_data, conditional_plot_data) %>%
-#   mutate(density = fct_recode(density, `All patients` = "marginal", `Patients without diabetes` = "conditional"))
-
-# plot_data %>%
-#   ggplot(aes(x = risk_score, color = race)) +
-#   geom_density(aes(weight = round(wtmec8yr/1000))) +
-#   geom_polygon(data = polygon_data, aes(x = x, y = y, fill = race),
-#                alpha = 0.2) +
-#   geom_vline(xintercept = 0.015, show.legend = FALSE) +
-#   facet_wrap(vars(fct_rev(density))) +
-#   geom_vline(data = line_annotations, aes(xintercept = incidence, color = race),
+# marginal_plot_data %>%
+#   ggplot(aes(x=risk_score)) +
+#   annotate("rect", xmin = 0.015, xmax = 1, ymin = -1, ymax = 15,
+#            alpha = .075) +
+#   geom_density(aes(weight=round(wtmec8yr/1000), color = race)) +
+#   geom_vline(xintercept = 0.015) +
+#   geom_vline(data = race_group_thresh, aes(xintercept = race_group_thresh, color = race),
 #              linetype = "dashed", show.legend = FALSE) +
+#   coord_cartesian(xlim = c(0, 0.051), expand = FALSE, y = c(0, 13)) +
+#   annotate("text", x = 0.016, y = 12.5, label = "Expected to\nbenefit from screening", hjust = 0, size = 3, vjust = 1) + 
+#   annotate("text", x = 0.014, y = 12.5, label = "Not expected to\nbenefit from screening", hjust = 1, size = 3, vjust = 1) +
 #   xlab("Probability of having diabetes") +
 #   ylab("Density") +
 #   scale_x_continuous(labels = scales::percent,
 #                      expand = c(0,0)) +
 #   theme_bw() +
-#   theme(legend.title = element_blank(),
-#         legend.position = "bottom",
-#         axis.ticks.y = element_blank(),
-#         axis.title = element_text(size = 9),
-#         axis.text = element_text(size = 8),
-#         axis.text.y=element_blank(),
-#         legend.text = element_text(size = 9), panel.spacing = unit(1.5, "lines"),
-#         plot.margin = margin(10, 10, 10, 10, "pt")) +
+#   theme(legend.position = "none",
+#         legend.title = element_blank(),
+#         axis.ticks.y=element_blank(),
+#         axis.text.y=element_blank()) +
 #   scale_color_manual(values=group_color_map) +
 #   scale_fill_manual(values=group_color_map) +
-#   coord_cartesian(xlim = c(0, .2), expand = FALSE, y = c(0, 13)) +
 #   guides(colour = guide_legend(override.aes = list(alpha = 0.2)))
-#   # guides(color = guide_legend(override.aes = list(fill = "white")))  # removes fill from legend
 # 
-# 
-# ggsave(paste(save_path, "risk_distribution.pdf", sep = ""),
+# ggsave(paste(save_path, "marginal_risk_distribution.pdf", sep = ""),
 #        width = 5.5,
 #        height = 4)
 
-# Attempt at using freq poly instead -------------------------------------------
-#  -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-
-# Freqpoly (density)
-# plot_data %>%
-#   ggplot(aes(x = risk_score, y = after_stat(density), color = race)) +
-#   geom_freqpoly(aes(weight = round(wtmec8yr/1000)), binwidth=0.005) +
-#   geom_vline(xintercept = 0.015, show.legend = FALSE) +
-#   facet_wrap(vars(fct_rev(density))) +
-#   geom_vline(data = line_annotations, aes(xintercept = incidence, color = race),
+# conditional_plot_data %>%
+#   ggplot(aes(x=risk_score, color=race)) +
+#   annotate("rect", xmin = 0.015, xmax = 1, ymin = -1, ymax = 15,
+#            alpha = .075) +
+#   geom_density(aes(weight=round(wtmec8yr/1000))) +
+#   geom_vline(xintercept = 0.015) +
+#   geom_vline(data = race_group_thresh_equalized_fnr, aes(xintercept = race_group_thresh, color = race),
 #              linetype = "dashed", show.legend = FALSE) +
 #   xlab("Probability of having diabetes") +
-#   ylab("Density") + 
+#   ylab("Density") +
+#   annotate("text", x = 0.016, y = 2.9, label = "Expected to\nbenefit from screening", hjust = 0, size = 3, vjust = 1) + 
+#   annotate("text", x = 0.014, y = 2.9, label = "Not expected to\nbenefit from screening", hjust = 1, size = 3, vjust = 1) +
 #   scale_x_continuous(labels = scales::percent,
 #                      expand = c(0,0)) +
 #   theme_bw() +
-#   theme(legend.title = element_blank(),
-#         legend.position = "bottom", 
-#         axis.ticks.y = element_blank(), 
-#         axis.title = element_text(size = 9), 
-#         axis.text = element_text(size = 8), 
-#         axis.text.y=element_blank(),
-#         legend.text = element_text(size = 9), panel.spacing = unit(1.5, "lines"), 
-#         plot.margin = margin(10, 10, 10, 10, "pt")) +
-#   scale_color_brewer(palette = "Set2") +
-#   coord_cartesian(xlim = c(0, .2))
+#   theme(legend.position = c(.8, .8),
+#         legend.title = element_blank(),
+#         legend.background = element_blank(),
+#         axis.ticks.y=element_blank(),
+#         axis.text.y=element_blank()) +
+#     scale_color_manual(values=group_color_map) +
+#   coord_cartesian(xlim = c(0, 0.051), expand = FALSE, y = c(0, 3))
 # 
-# # Histogram with freq poly (counts)
-# plot_data %>%
-#   ggplot(aes(x = risk_score, color = race)) +
-#   geom_histogram(aes(weight = round(wtmec8yr/1000)), binwidth=0.005, fill = "white") +
-#   geom_freqpoly(aes(weight = round(wtmec8yr/1000), color = race), binwidth=0.005) +
-#   geom_vline(xintercept = 0.015, show.legend = FALSE) +
-#   facet_wrap(vars(fct_rev(density))) +
-#   geom_vline(data = line_annotations, aes(xintercept = incidence, color = race),
-#              linetype = "dashed", show.legend = FALSE) +
-#   xlab("Probability of having diabetes") +
-#   # ylab("Density") + 
-#   scale_x_continuous(labels = scales::percent,
-#                      expand = c(0,0)) +
-#   theme_bw() +
-#   theme(legend.title = element_blank(),
-#         legend.position = "bottom", 
-#         axis.ticks.y = element_blank(), 
-#         axis.title = element_text(size = 9), 
-#         axis.text = element_text(size = 8), 
-#         axis.text.y=element_blank(),
-#         legend.text = element_text(size = 9), panel.spacing = unit(1.5, "lines"), 
-#         plot.margin = margin(10, 10, 10, 10, "pt")) +
-#   scale_color_brewer(palette = "Set2") +
-#   coord_cartesian(xlim = c(0, .2))
+# ggsave(paste(save_path, "conditional_risk_distribution.pdf", sep = ""),
+#        width = 5.5,
+#        height = 4)
+
+plot_data <- bind_rows(marginal_plot_data, conditional_plot_data) %>%
+  mutate(density = fct_recode(density, `All patients` = "marginal", `Patients with diabetes` = "conditional"))
+
+plot_data %>%
+  ggplot(aes(x = risk_score, color = race)) +
+  annotate("rect", xmin = 0.015, xmax = 1, ymin = -5, ymax = 20,
+           alpha = .075) +
+  geom_density(aes(weight = round(wtmec8yr/1000))) +
+  geom_vline(xintercept = 0.015, show.legend = FALSE) +
+  facet_wrap(vars(fct_rev(density))) +
+  geom_vline(data = race_group_thresh_equalized_fnr, aes(xintercept = race_group_thresh, color = race),
+             linetype = "dashed", show.legend = FALSE) +
+  geom_vline(data = race_group_thresh, aes(xintercept = race_group_thresh, color = race),
+             linetype = "dashed", show.legend = FALSE) +
+  xlab("Probability of having diabetes") +
+  ylab("Density") +
+  annotate("label", x = 0.016, y = 12.2, label = "Expected\nto benefit\nfrom screening", hjust = 0, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
+  annotate("label", x = 0.014, y = 12.2, label = "Not expected\nto benefit\nfrom screening", hjust = 1, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) +
+  scale_x_continuous(labels = scales::percent,
+                     expand = c(0,0)) +
+  theme_bw() +
+  theme(legend.title = element_blank(),
+        legend.position = "bottom",
+        axis.ticks.y = element_blank(),
+        axis.title = element_text(size = 9),
+        axis.text = element_text(size = 8),
+        axis.text.y=element_blank(),
+        legend.text = element_text(size = 9), panel.spacing = unit(1.5, "lines"),
+        plot.margin = margin(10, 10, 10, 10, "pt")) +
+  scale_color_manual(values=group_color_map,
+                     breaks = c("White", "Hispanic", "Asian", "Black")) +
+  coord_cartesian(xlim = c(0, .051), ylim = c(0, 12))
+
+
+ggsave(paste(save_path, "risk_distribution.pdf", sep = ""),
+       width = 8,
+       height = 5.5)
+
