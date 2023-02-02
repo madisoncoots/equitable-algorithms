@@ -142,6 +142,6 @@ figure_data %>%
                      name = "Percentage of rides offered to Black clients") +
   theme_bw()
 
-ggsave(paste(save_path, "facet_calibration_plot.pdf", sep = ""),
-       width = 5.25,
-       height = 5)
+ggsave(paste(save_path, "survey_preferences.pdf", sep = ""),
+       width = 5,
+       height = 4.5)

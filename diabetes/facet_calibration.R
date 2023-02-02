@@ -139,7 +139,7 @@ combined_risk_scores <-
          wrong = if_else(wrong, "wrong", "ok")) %>%
   mutate(named_blind_screened = if_else(blind_screened, "Screened", "Not screened"))
 
-# facet_plot <- 
+facet_plot <-
   combined_risk_scores %>%
   filter(race == "Asian" | race == "White") %>%
   ggplot(aes(x = race_aware_model_pred, pattern = wrong, fill = named_blind_screened)) +
@@ -147,15 +147,15 @@ combined_risk_scores <-
   annotate("rect", xmin = 0.015, xmax = 1, ymin = -1, ymax = 1,
            alpha = .075) + 
   geom_histogram(binwidth = 0.0025, boundary = 0, aes(y = after_stat(count/tapply(count, PANEL, sum)[PANEL]))) +
-  # scale_pattern_manual(values = c(wrong = "circle", ok = "none"), guide = "none") +
-  # geom_histogram_pattern(binwidth = 0.0025, boundary = 0, aes(y = after_stat(count/tapply(count, PANEL, sum)[PANEL])),
-  #                        pattern_color = NA,
-  #                        pattern_fill = "black",
-  #                        pattern_angle = 45,
-  #                        # pattern_density = 0.5,
-  #                        pattern_spacing = 0.05,
-  #                        # pattern_key_scale_factor = 0.5,
-  #                        pattern_size = 2) +
+  scale_pattern_manual(values = c(wrong = "circle", ok = "none"), guide = "none") +
+  geom_histogram_pattern(binwidth = 0.0025, boundary = 0, aes(y = after_stat(count/tapply(count, PANEL, sum)[PANEL])),
+                         pattern_color = NA,
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         # pattern_density = 0.5,
+                         pattern_spacing = 0.07, # tweak this for dot size
+                         # pattern_key_scale_factor = 0.5,
+                         pattern_size = 2) +
   annotate("label", x = 0.016, y = 0.075, label = "Expected to\nbenefit from screening", hjust = 0, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
   annotate("label", x = 0.014, y = 0.075, label = "Not expected to\nbenefit from screening", hjust = 1, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
   xlab("Risk score") +
@@ -165,7 +165,7 @@ combined_risk_scores <-
                      breaks = seq(0.0, 0.1, 0.01)) +
   scale_x_continuous(labels = scales::percent,
                      breaks = seq(0.0, 0.1, 0.01)) +
-  coord_cartesian(xlim = c(0, 0.054), ylim = c(0, 0.075)) +
+  coord_cartesian(xlim = c(0, 0.051), ylim = c(0, 0.075)) +
   theme_bw() +
   theme(legend.title = element_blank(),
         legend.position = c(0.87, 0.93),
