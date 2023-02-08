@@ -4,7 +4,6 @@
 # Figure code for Figures
 # 1a, 1b, 2, 3b, 4b, and 5
 
-
 library(tidyverse)
 library(ggpattern)
 library(RColorBrewer)
@@ -13,7 +12,7 @@ library(readr)
 library(janitor)
 library(lubridate)
 
-source("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/diabetes/colors.R")
+source("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/colors.R")
 
 data <- readRDS("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/data.rds")
 cleaned_survey_results <- readRDS("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/survey.rds")
@@ -238,6 +237,17 @@ race_group_thresh_equalized_fnr <- data_with_pred %>%
 plot_data <- bind_rows(marginal_plot_data, conditional_plot_data) %>%
   mutate(density = fct_recode(density, `All patients` = "marginal", `Patients with diabetes` = "conditional"))
 
+text_annotation <- data.frame(
+  label = c("Expected <br>net **benefit**<br>from screening", "Expected <br>net **cost**<br>from screening"),
+  x = c(0.016, 0.014),
+  race = c("Asian", "Asian"),
+  y = 11.5,
+  density = c("All patients", "All patients"),
+  wrong = c("ok", "ok"),
+  named_blind_screened = c("Screened", "Screened"),
+  hjust = c(0, 1)
+)
+
 plot_data %>%
   ggplot(aes(x = risk_score, color = race)) +
   annotate("rect", xmin = 0.015, xmax = 1, ymin = -5, ymax = 20,
@@ -251,8 +261,14 @@ plot_data %>%
              linetype = "dashed", show.legend = FALSE) +
   xlab("Probability of having diabetes") +
   ylab("Density") +
-  annotate("label", x = 0.016, y = 12.2, label = "Expected\nto benefit\nfrom screening", hjust = 0, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
-  annotate("label", x = 0.014, y = 12.2, label = "Not expected\nto benefit\nfrom screening", hjust = 1, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) +
+  # annotate("label", x = 0.016, y = 12.2, label = "Expected\nto benefit\nfrom screening", hjust = 0, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
+  # annotate("label", x = 0.014, y = 12.2, label = "Not expected\nto benefit\nfrom screening", hjust = 1, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) +
+  # # Needed to use geom_richtext to enable 1) bolding part of the label, and adding the label to just one facet
+  geom_richtext(data = text_annotation, mapping = aes(x = x, y = y, label = label, hjust = hjust),
+                size = 3,
+                fill = alpha(c("white"), 0.8),
+                label.size = NA,
+                color = "black") +
   scale_x_continuous(labels = scales::percent,
                      expand = c(0,0)) +
   theme_bw() +
