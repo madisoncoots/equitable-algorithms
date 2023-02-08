@@ -77,7 +77,7 @@ label_bias_plot_data %>%
   theme_bw() +
   theme(legend.title = element_blank(),
         legend.position = c(0.17, 0.82)) +
-  scale_color_manual(values=ordered_group_color_map,
+  scale_color_manual(values=group_color_map,
                      breaks=ordered_group_names)
 
 ggsave(paste(save_path, "label_bias_calibration_plot.pdf", sep = ""),

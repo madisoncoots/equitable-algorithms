@@ -261,7 +261,7 @@ plot_data %>%
         plot.margin = margin(10, 10, 10, 10, "pt")) +
   scale_color_manual(values=group_color_map,
                      breaks = c("White", "Hispanic", "Asian", "Black")) +
-  coord_cartesian(xlim = c(0, .15), ylim = c(0, 12))
+  coord_cartesian(xlim = c(0, .05), ylim = c(0, 12))
 
 
 ggsave(paste(save_path, "risk_distribution.pdf", sep = ""),

@@ -151,7 +151,7 @@ text_annotation <- data.frame(
 )
 
 
-# histogram <-
+histogram <-
   combined_risk_scores %>%
   filter(race == "Asian" | race == "White") %>%
   ggplot(aes(x = race_aware_model_pred, pattern = wrong, fill = named_blind_screened)) +
@@ -159,15 +159,16 @@ text_annotation <- data.frame(
   annotate("rect", xmin = 0.015, xmax = 1, ymin = -1, ymax = 1,
            alpha = .075) + 
   geom_histogram(binwidth = 0.0025, boundary = 0, aes(y = after_stat(count/tapply(count, PANEL, sum)[PANEL]))) +
-  # scale_pattern_manual(values = c(wrong = "circle", ok = "none"), guide = "none") +
-  # geom_histogram_pattern(binwidth = 0.0025, boundary = 0, aes(y = after_stat(count/tapply(count, PANEL, sum)[PANEL])),
-  #                        pattern_color = NA,
-  #                        pattern_fill = "black",
-  #                        pattern_angle = 45,
-  #                        # pattern_density = 0.5,
-  #                        pattern_spacing = 0.07, # tweak this for dot size
-  #                        # pattern_key_scale_factor = 0.5,
-  #                        pattern_size = 2) +
+  scale_pattern_manual(values = c(wrong = "circle", ok = "none"), guide = "none") +
+  geom_histogram_pattern(binwidth = 0.0025, boundary = 0, aes(y = after_stat(count/tapply(count, PANEL, sum)[PANEL])),
+                         pattern_color = NA,
+                         pattern_fill = "black",
+                         pattern_angle = 45,
+                         # pattern_density = 0.5,
+                         pattern_spacing = 0.07, # tweak this for dot size
+                         # pattern_key_scale_factor = 0.5,
+                         pattern_size = 2) +
+  # Needed to use geom_richtext to enable 1) bolding part of the label, and adding the label to just one facet
   geom_richtext(data = text_annotation, mapping = aes(x = x, y = y, label = label, hjust = hjust),
             size = 3,
             fill = alpha(c("white"), 0.8),
