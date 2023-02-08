@@ -1,6 +1,7 @@
 library(tidyverse)
 library(ggpattern)
 library(RColorBrewer)
+library(ggtext)
 source("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/diabetes/colors.R")
 
 data <- readRDS("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/data.rds")
@@ -139,7 +140,18 @@ combined_risk_scores <-
          wrong = if_else(wrong, "wrong", "ok")) %>%
   mutate(named_blind_screened = if_else(blind_screened, "Screened", "Not screened"))
 
-facet_plot <-
+text_annotation <- data.frame(
+  label = c("Expected net<br>**benefit** from screening", "Expected net<br>**cost** from screening"),
+  x = c(0.016, 0.014),
+  y = 0.07,
+  race = c("Asian", "Asian"),
+  wrong = c("ok", "ok"),
+  named_blind_screened = c("Screened", "Screened"),
+  hjust = c(0, 1)
+)
+
+
+# histogram <-
   combined_risk_scores %>%
   filter(race == "Asian" | race == "White") %>%
   ggplot(aes(x = race_aware_model_pred, pattern = wrong, fill = named_blind_screened)) +
@@ -147,17 +159,20 @@ facet_plot <-
   annotate("rect", xmin = 0.015, xmax = 1, ymin = -1, ymax = 1,
            alpha = .075) + 
   geom_histogram(binwidth = 0.0025, boundary = 0, aes(y = after_stat(count/tapply(count, PANEL, sum)[PANEL]))) +
-  scale_pattern_manual(values = c(wrong = "circle", ok = "none"), guide = "none") +
-  geom_histogram_pattern(binwidth = 0.0025, boundary = 0, aes(y = after_stat(count/tapply(count, PANEL, sum)[PANEL])),
-                         pattern_color = NA,
-                         pattern_fill = "black",
-                         pattern_angle = 45,
-                         # pattern_density = 0.5,
-                         pattern_spacing = 0.07, # tweak this for dot size
-                         # pattern_key_scale_factor = 0.5,
-                         pattern_size = 2) +
-  annotate("label", x = 0.016, y = 0.075, label = "Expected to\nbenefit from screening", hjust = 0, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
-  annotate("label", x = 0.014, y = 0.075, label = "Not expected to\nbenefit from screening", hjust = 1, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
+  # scale_pattern_manual(values = c(wrong = "circle", ok = "none"), guide = "none") +
+  # geom_histogram_pattern(binwidth = 0.0025, boundary = 0, aes(y = after_stat(count/tapply(count, PANEL, sum)[PANEL])),
+  #                        pattern_color = NA,
+  #                        pattern_fill = "black",
+  #                        pattern_angle = 45,
+  #                        # pattern_density = 0.5,
+  #                        pattern_spacing = 0.07, # tweak this for dot size
+  #                        # pattern_key_scale_factor = 0.5,
+  #                        pattern_size = 2) +
+  geom_richtext(data = text_annotation, mapping = aes(x = x, y = y, label = label, hjust = hjust),
+            size = 3,
+            fill = alpha(c("white"), 0.8),
+            # alpha = 0.8,
+            label.size = NA) +
   xlab("Risk score") +
   ylab("Population proportion") + 
   geom_vline(xintercept=0.015) +
@@ -206,7 +221,7 @@ facet_plot_data %>%
   coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, 0.12)) +
   theme_bw() +
   theme(legend.title = element_blank(),
-        legend.position = "bottom") +
+        legend.position = c(0.88, 0.85)) +
   scale_color_manual(values=ordered_group_color_map,
                      breaks = ordered_group_names)
 
