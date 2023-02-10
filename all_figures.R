@@ -136,6 +136,14 @@ text_annotation <- data.frame(
   hjust = c(0, 1)
 )
 
+# For paper stats
+combined_risk_scores %>%
+  filter(race == "White") %>%
+  summarize(sum(wrong == "wrong") / n())
+
+combined_risk_scores %>%
+  filter(race == "Asian") %>%
+  summarize(sum(wrong == "wrong") / n())
 
 histogram <-
   combined_risk_scores %>%
@@ -210,6 +218,12 @@ quantile_for_thresh_whole_pop <- data_with_pred %>%
   summarize(sum(above_thresh) / n()) %>%
   pull()
 
+# The proportion of each group with risk scores above 1.5% (for paper stats)
+data_with_pred %>%
+  mutate(above_thresh = risk_score >= 0.015) %>%
+  group_by(race) %>%
+  summarize(sum(above_thresh) / n())
+
 race_group_thresh <- data_with_pred %>%
   group_by(race) %>%
   arrange(desc(risk_score)) %>%
@@ -224,6 +238,14 @@ fnr_whole_pop <- data_with_pred %>%
          false_negative = !screening_decision) %>%
   summarize(sum(false_negative) / n()) %>%
   pull()
+
+# FNR by race with 1.5% threshold (for paper stats)
+data_with_pred %>%
+  filter(diabetes) %>%
+  mutate(screening_decision = risk_score >= 0.015,
+         false_negative = !screening_decision) %>%
+  group_by(race) %>%
+  summarize(sum(false_negative) / n())
 
 race_group_thresh_equalized_fnr <- data_with_pred %>%
   filter(diabetes) %>%
