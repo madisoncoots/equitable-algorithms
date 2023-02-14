@@ -13,6 +13,7 @@ library(janitor)
 library(lubridate)
 
 source("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/colors.R")
+theme_set(theme_bw(base_size = 15))
 
 data <- readRDS("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/data.rds")
 cleaned_survey_results <- readRDS("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/survey.rds")
@@ -102,9 +103,8 @@ facet_plot_data %>%
                      breaks = seq(0.0, 0.12, 0.02)) +
   scale_x_continuous(labels = scales::percent) +
   coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, 0.12)) +
-  theme_bw() +
   theme(legend.title = element_blank(),
-        legend.position = c(0.88, 0.85)) +
+        legend.position = c(0.85, 0.83)) +
   scale_color_manual(values=ordered_group_color_map,
                      breaks = ordered_group_names)
 
@@ -176,9 +176,8 @@ histogram <-
   scale_x_continuous(labels = scales::percent,
                      breaks = seq(0.0, 0.1, 0.01)) +
   coord_cartesian(xlim = c(0, 0.051), ylim = c(0, 0.075)) +
-  theme_bw() +
   theme(legend.title = element_blank(),
-        legend.position = c(0.87, 0.93),
+        legend.position = c(0.83, 0.93),
         legend.background = element_blank()) +
   scale_fill_manual(values = c("Screened" = "tomato", "Not screened" = "gray"),
                     breaks = c("Screened", "Not screened"),
@@ -293,14 +292,14 @@ plot_data %>%
                 color = "black") +
   scale_x_continuous(labels = scales::percent,
                      expand = c(0,0)) +
-  theme_bw() +
   theme(legend.title = element_blank(),
         legend.position = "bottom",
         axis.ticks.y = element_blank(),
-        axis.title = element_text(size = 9),
-        axis.text = element_text(size = 8),
+        # axis.title = element_text(size = 9),
+        # axis.text = element_text(size = 8),
         axis.text.y=element_blank(),
-        legend.text = element_text(size = 9), panel.spacing = unit(1.5, "lines"),
+        # legend.text = element_text(size = 9), 
+        panel.spacing = unit(1.5, "lines"),
         plot.margin = margin(10, 10, 10, 10, "pt")) +
   scale_color_manual(values=group_color_map,
                      breaks = c("White", "Hispanic", "Asian", "Black")) +
@@ -338,12 +337,11 @@ survey_points %>%
                      breaks = c(0.1, 0.3, 0.5, 0.7, 0.9)) +
   coord_cartesian(xlim = c(0.1, 0.9),
                   ylim = c(500, 750)) +
-  theme_bw() + 
   theme(legend.position = c(.84, .7),
         legend.title = element_blank())
 
 ggsave(paste(save_path, "pareto_frontier.pdf", sep = ""),
-       width = 5,
+       width = 5.25,
        height = 5) 
 
 # ==================== Figure 4b: Survey results histogram =====================
@@ -382,12 +380,11 @@ figure_data %>%
   scale_x_continuous(labels = function(x) paste0(x, "%"),
                      breaks = c(10, 30, 50, 70, 90),
                      minor_breaks = c(),
-                     name = "Percentage of rides offered to Black clients") +
-  theme_bw()
+                     name = "Percentage of rides offered to Black clients")
 
 ggsave(paste(save_path, "survey_preferences.pdf", sep = ""),
        width = 5,
-       height = 4.5)
+       height = 4)
 
 
 # ==================== Figure 5: Label bias calibration plot ===================
@@ -455,14 +452,13 @@ label_bias_plot_data %>%
   scale_y_continuous(labels = scales::percent) +
   scale_x_continuous(labels = scales::percent) +
   coord_cartesian(xlim = c(0,risk_score_upper_bound), ylim = c(0, 0.08)) +
-  theme_bw() +
   theme(legend.title = element_blank(),
-        legend.position = c(0.17, 0.82)) +
+        legend.position = c(0.17, 0.83)) +
   scale_color_manual(values=group_color_map,
                      breaks=ordered_group_names)
 
 ggsave(paste(save_path, "label_bias_calibration_plot.pdf", sep = ""),
-       width = 4,
-       height = 4)
+       width = 5.25,
+       height = 5)
 
 
