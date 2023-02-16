@@ -112,6 +112,49 @@ ggsave(paste(save_path, "facet_calibration_plot.pdf", sep = ""),
        width = 5.25,
        height = 5)
 
+# For paper stats
+hypothetical_asian_patient <- data.frame(
+  race = "Asian",
+  ridageyr = 30, 
+  bmxbmi = 21.5
+)
+
+predict(race_blind_model, newdata = hypothetical_asian_patient, type = "response")
+predict(race_aware_model, newdata = hypothetical_asian_patient, type = "response")
+
+data %>%
+  mutate(risk_score = race_blind_model_pred,
+         est_diabetes_prob = full_model_pred) %>%
+  filter(!is.na(risk_score),
+         !is.na(est_diabetes_prob)) %>%
+  select(race, risk_score, est_diabetes_prob) %>%
+  mutate(risk_score_bin = floor((risk_score  + 0.0005) * 1000) / 1000) %>% # round to the nearest 0.001
+  group_by(race, risk_score_bin) %>%
+  summarize(bin_avg_risk_score = mean(risk_score),
+            diabetes_prev = mean(est_diabetes_prob)) %>%
+  filter(race == "Asian", risk_score_bin %in% c(0.011, 0.012))
+
+
+hypothetical_white_patient <- data.frame(
+  race = "White",
+  ridageyr = 37, 
+  bmxbmi = 21.5
+)
+
+predict(race_blind_model, newdata = hypothetical_white_patient, type = "response")
+predict(race_aware_model, newdata = hypothetical_white_patient, type = "response")
+
+data %>%
+  mutate(risk_score = race_blind_model_pred,
+         est_diabetes_prob = full_model_pred) %>%
+  filter(!is.na(risk_score),
+         !is.na(est_diabetes_prob)) %>%
+  select(race, risk_score, est_diabetes_prob) %>%
+  mutate(risk_score_bin = floor((risk_score  + 0.0005) * 1000) / 1000) %>% # round to the nearest 0.001
+  group_by(race, risk_score_bin) %>%
+  summarize(bin_avg_risk_score = mean(risk_score),
+            diabetes_prev = mean(est_diabetes_prob)) %>%
+  filter(race == "White", risk_score_bin == 0.019)
 
 # ======================= Figure 1b: Histogram facet plot ======================
 
@@ -262,7 +305,7 @@ text_annotation <- data.frame(
   label = c("Expected <br>net **benefit**<br>from screening", "Expected <br>net **cost**<br>from screening"),
   x = c(0.016, 0.014),
   race = c("Asian", "Asian"),
-  y = 11.5,
+  y = 12.5,
   density = c("All patients", "All patients"),
   wrong = c("ok", "ok"),
   named_blind_screened = c("Screened", "Screened"),
@@ -273,7 +316,7 @@ plot_data %>%
   ggplot(aes(x = risk_score, color = race)) +
   annotate("rect", xmin = 0.015, xmax = 1, ymin = -5, ymax = 20,
            alpha = .075) +
-  geom_density(aes(weight = round(wtmec8yr/1000))) +
+  geom_density(aes(weight = round(wtmec8yr/1000)), bw = 0.01) +
   geom_vline(xintercept = 0.015, show.legend = FALSE) +
   facet_wrap(vars(fct_rev(density))) +
   geom_vline(data = race_group_thresh_equalized_fnr, aes(xintercept = race_group_thresh, color = race),
@@ -292,6 +335,7 @@ plot_data %>%
                 color = "black") +
   scale_x_continuous(labels = scales::percent,
                      expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
   theme(legend.title = element_blank(),
         legend.position = "bottom",
         axis.ticks.y = element_blank(),
@@ -303,7 +347,7 @@ plot_data %>%
         plot.margin = margin(10, 10, 10, 10, "pt")) +
   scale_color_manual(values=group_color_map,
                      breaks = c("White", "Hispanic", "Asian", "Black")) +
-  coord_cartesian(xlim = c(0, .05), ylim = c(0, 12))
+  coord_cartesian(xlim = c(0, .05), ylim = c(0, 13.5))
 
 
 ggsave(paste(save_path, "risk_distribution.pdf", sep = ""),
@@ -317,6 +361,10 @@ survey_points <- data.frame(
   pct_rides_black_clients = c(0.1, 0.3, 0.5, 0.7, 0.9))
 
 spline_int <- as.data.frame(spline(survey_points$pct_rides_black_clients, survey_points$new_appearances))
+true_max <- spline_int %>%
+  filter(y == max(y))
+
+equalized_decision_rate <- data.frame(x = 0.5, y = 710)
 
 survey_points %>%
   ggplot(aes(x = pct_rides_black_clients, y = new_appearances)) +
@@ -328,11 +376,13 @@ survey_points %>%
   geom_segment(aes(x = 0.5, y = 0, xend = 0.5, yend = 710), color = "gray", linetype = "dashed", linewidth = 0.3) +
   geom_segment(aes(x = 0.7, y = 0, xend = 0.7, yend = 620), color = "gray", linetype = "dashed", linewidth = 0.3) +
   geom_segment(aes(x = 0.9, y = 0, xend = 0.9, yend = 520), color = "gray", linetype = "dashed", linewidth = 0.3) +
-  geom_point(data = survey_points, aes(x = pct_rides_black_clients, y = new_appearances)) +
-  annotate("text", x = 0.3 + 0.23, y = 730 + 10, label = "Maximum appearances (approx.)") + 
-  annotate("text", x = 0.5 + 0.15, y = 700 + 15, label = "Demographic parity") + 
+  # geom_point(data = survey_points, aes(x = pct_rides_black_clients, y = new_appearances)) +
+  geom_point(data = true_max, aes(x = x, y = y)) +
+  geom_point(data = equalized_decision_rate, aes(x = x, y = y)) +
+  annotate("text", x = 0.3 + 0.2, y = 730 + 10, label = "Maximum appearances") + 
+  annotate("text", x = 0.5 + 0.18, y = 700 + 15, label = "Equalized decision rate") + 
   ylab("Number of additional appearances") +
-  xlab("Percentage of rides offered to Black clients") +
+  xlab("Percentage of rides offered to Black residents") +
   scale_x_continuous(labels = scales::percent,
                      breaks = c(0.1, 0.3, 0.5, 0.7, 0.9)) +
   coord_cartesian(xlim = c(0.1, 0.9),
