@@ -1,2 +1,3 @@
-diabetes/figures/
-data/
+data/county_samples.csv
+data/d2ata.rds
+data/help.rds
