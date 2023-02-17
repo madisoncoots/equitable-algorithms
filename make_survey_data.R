@@ -4,13 +4,13 @@ library(tidyverse)
 library(ggplot2)
 library(lubridate)
 
-data_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/Nudge_Preferences_Expanded_Survey_December_12_2022_10.07.csv"
+data_path <- here::here(dirname(rstudioapi::getActiveDocumentContext()$path), "data", "raw_survey_responses.csv")
 
-write_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/"
+write_path <- here::here(dirname(rstudioapi::getActiveDocumentContext()$path), "data/")
 
 final_survey_date <- mdy("12/6/22") # this is when we started the final survey
 
-raw_survey_results <- read_csv(survey_data_path, col_types = cols(EndDate = col_datetime(format = "%Y-%m-%d %H:%M:%S"))) %>%
+raw_survey_results <- read_csv(data_path, col_types = cols(EndDate = col_datetime(format = "%Y-%m-%d %H:%M:%S"))) %>%
   clean_names()
 
 cleaned_survey_results <- raw_survey_results %>%

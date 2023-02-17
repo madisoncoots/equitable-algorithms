@@ -12,12 +12,15 @@ library(readr)
 library(janitor)
 library(lubridate)
 
-source("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/colors.R")
+directory_path <- dirname(rstudioapi::getActiveDocumentContext()$path)
+
+source(here::here(directory_path, 'colors.R'))
+
 theme_set(theme_bw(base_size = 15))
 
-data <- readRDS("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/data.rds")
-cleaned_survey_results <- readRDS("/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/data/survey.rds")
-save_path <- "/Users/madisoncoots/Documents/harvard/research/equitable-algorithms/figures/"
+data <- readRDS(here::here(directory_path, 'data', 'data.rds'))
+cleaned_survey_results <- readRDS(here::here(directory_path, 'data', 'survey.rds'))
+save_path <- here::here(directory_path, 'figures/')
 
 # ====================== Figure 1a: Calibration facet plot =====================
 
