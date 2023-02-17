@@ -1,7 +1,7 @@
 # Author: Madison Coots
-# Date: February 8, 2023
+# Date: February 17, 2023
 # ======================
-# Figure code for Figures
+# Code for Figures
 # 1a, 1b, 2, 3b, 4b, and 5
 
 library(tidyverse)
@@ -325,9 +325,7 @@ plot_data %>%
              linetype = "dashed", show.legend = FALSE) +
   xlab("Probability of having diabetes") +
   ylab("Density") +
-  # annotate("label", x = 0.016, y = 12.2, label = "Expected\nto benefit\nfrom screening", hjust = 0, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) + 
-  # annotate("label", x = 0.014, y = 12.2, label = "Not expected\nto benefit\nfrom screening", hjust = 1, size = 3, vjust = 1, label.size = NA, fill = alpha(c("white"), 0.8)) +
-  # # Needed to use geom_richtext to enable 1) bolding part of the label, and adding the label to just one facet
+  # Needed to use geom_richtext to enable 1) bolding part of the label, and adding the label to just one facet
   geom_richtext(data = text_annotation, mapping = aes(x = x, y = y, label = label, hjust = hjust),
                 size = 3,
                 fill = alpha(c("white"), 0.8),
@@ -339,10 +337,7 @@ plot_data %>%
   theme(legend.title = element_blank(),
         legend.position = "bottom",
         axis.ticks.y = element_blank(),
-        # axis.title = element_text(size = 9),
-        # axis.text = element_text(size = 8),
         axis.text.y=element_blank(),
-        # legend.text = element_text(size = 9), 
         panel.spacing = unit(1.5, "lines"),
         plot.margin = margin(10, 10, 10, 10, "pt")) +
   scale_color_manual(values=group_color_map,
@@ -368,15 +363,12 @@ equalized_decision_rate <- data.frame(x = 0.5, y = 710)
 
 survey_points %>%
   ggplot(aes(x = pct_rides_black_clients, y = new_appearances)) +
-  # geom_smooth(aes(color = "Smooth"), size = 0.5, se = FALSE) +
-  # geom_line(aes(color = "No smoothing")) + # No smoothing
   geom_line(data = spline_int, aes(x=x, y=y), color = "dimgray") +
   geom_segment(aes(x = 0.1, y = 0, xend = 0.1, yend = 680), color = "gray", linetype = "dashed", linewidth = 0.3) +
   geom_segment(aes(x = 0.3, y = 0, xend = 0.3, yend = 730), color = "gray", linetype = "dashed", linewidth = 0.3) +
   geom_segment(aes(x = 0.5, y = 0, xend = 0.5, yend = 710), color = "gray", linetype = "dashed", linewidth = 0.3) +
   geom_segment(aes(x = 0.7, y = 0, xend = 0.7, yend = 620), color = "gray", linetype = "dashed", linewidth = 0.3) +
   geom_segment(aes(x = 0.9, y = 0, xend = 0.9, yend = 520), color = "gray", linetype = "dashed", linewidth = 0.3) +
-  # geom_point(data = survey_points, aes(x = pct_rides_black_clients, y = new_appearances)) +
   geom_point(data = true_max, aes(x = x, y = y)) +
   geom_point(data = equalized_decision_rate, aes(x = x, y = y)) +
   annotate("text", x = 0.3 + 0.2, y = 730 + 10, label = "Maximum appearances") + 
