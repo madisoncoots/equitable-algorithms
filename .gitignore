@@ -1,3 +1,4 @@
 data/county_samples.csv
 data/d2ata.rds
 data/help.rds
+pareto_survey_points.R
