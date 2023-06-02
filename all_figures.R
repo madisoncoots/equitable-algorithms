@@ -108,7 +108,7 @@ calibration_facet_plot <- facet_plot_data %>%
   scale_x_continuous(labels = scales::percent) +
   coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, 0.12)) +
   theme(legend.title = element_blank(),
-        legend.position = c(0.88, 0.9),
+        legend.position = c(0.88, 0.88),
         legend.spacing.y = unit(0.005, 'cm')) +
   scale_color_manual(values=ordered_group_color_map,
                      breaks = ordered_group_names) +
@@ -231,7 +231,7 @@ histogram <-
                      breaks = seq(0.0, 0.1, 0.01)) +
   coord_cartesian(xlim = c(0, 0.051), ylim = c(0, 0.075)) +
   theme(legend.title = element_blank(),
-        legend.position = c(0.83, 0.93),
+        legend.position = c(0.83, 0.9),
         legend.background = element_blank()) +
   scale_fill_manual(values = c("Screened" = "tomato", "Not screened" = "gray"),
                     breaks = c("Screened", "Not screened"),
@@ -252,7 +252,7 @@ figure_1 <- grid.arrange(calibration_facet_plot, histogram, ncol = 2)
 ggsave(paste(save_path, "figure_1.pdf", sep = ""), 
        figure_1, 
        width = 180, 
-       height = 120, 
+       height = 100, 
        units = "mm",
        device = cairo_pdf)
 
@@ -363,14 +363,19 @@ plot_data %>%
         axis.ticks.y = element_blank(),
         axis.text.y=element_blank(),
         panel.spacing = unit(1.5, "lines"),
-        plot.margin = margin(10, 80, 10, 80, "pt")) +
+        plot.margin = margin(10, 50, 10, 50, "pt")) +
   scale_color_manual(values=group_color_map,
                      breaks = c("White", "Hispanic", "Asian", "Black")) +
-  coord_cartesian(xlim = c(0, .05), ylim = c(0, 14))
+  coord_cartesian(xlim = c(0, .05), ylim = c(0, 14)) +
+  guides(color=guide_legend(
+    keywidth=0.15,
+    keyheight=0.15,
+    default.unit="inch")
+  )
 
 ggsave(paste(save_path, "figure_2.pdf", sep = ""),
        width = 180,
-       height = 80,
+       height = 90,
        units = "mm")
 
 # ====================== Figure 3b: Pareto frontier plot =======================
