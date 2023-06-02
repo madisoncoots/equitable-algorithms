@@ -11,12 +11,14 @@ library(ggtext)
 library(readr)
 library(janitor)
 library(lubridate)
+library(gridExtra)
+library(cowplot)
 
 directory_path <- dirname(rstudioapi::getActiveDocumentContext()$path)
 
 source(here::here(directory_path, 'colors.R'))
 
-theme_set(theme_bw(base_size = 15))
+theme_set(theme_bw(base_size = 7))
 
 data <- readRDS(here::here(directory_path, 'data', 'data.rds'))
 cleaned_survey_results <- readRDS(here::here(directory_path, 'data', 'survey.rds'))
@@ -93,11 +95,11 @@ facet_plot_data <- bind_rows(
 ) %>%
   mutate(plot = fct_recode(plot, `Model without race/ethnicity` = "blind", `Model with race/ethnicity` = "aware"))
 
-facet_plot_data %>%
+calibration_facet_plot <- facet_plot_data %>%
   ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
   geom_vline(xintercept=0.015) +
   geom_line() +
-  geom_point() +
+  geom_point(size = 1) +
   facet_wrap(vars(fct_rev(plot))) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "darkgray") +
   xlab("Risk score") +
@@ -107,13 +109,20 @@ facet_plot_data %>%
   scale_x_continuous(labels = scales::percent) +
   coord_cartesian(xlim = c(0, risk_score_upper_bound), ylim = c(0, 0.12)) +
   theme(legend.title = element_blank(),
-        legend.position = c(0.85, 0.83)) +
+        legend.position = c(0.88, 0.9),
+        legend.spacing.y = unit(0.005, 'cm')) +
   scale_color_manual(values=ordered_group_color_map,
-                     breaks = ordered_group_names)
+                     breaks = ordered_group_names) +
+  guides(color=guide_legend(
+    keywidth=0.15,
+    keyheight=0.15,
+    default.unit="inch")
+  )
 
-ggsave(paste(save_path, "facet_calibration_plot.pdf", sep = ""),
-       width = 5.25,
-       height = 5)
+# ggsave(paste(save_path, "facet_calibration_plot.pdf", sep = ""),
+#        width = 90,
+#        height = 120,
+#        units = "mm")
 
 # For paper stats
 hypothetical_asian_patient <- data.frame(
@@ -173,7 +182,7 @@ combined_risk_scores <-
   mutate(named_blind_screened = if_else(blind_screened, "Screened", "Not screened"))
 
 text_annotation <- data.frame(
-  label = c("Expected net<br>**benefit** from screening", "Expected net<br>**cost** from screening"),
+  label = c("Expected&#160;net<br>**benefit**     from     screening", "Expected net<br>**cost** from screening"),
   x = c(0.016, 0.014),
   y = 0.07,
   race = c("Asian", "Asian"),
@@ -210,7 +219,7 @@ histogram <-
                          pattern_size = 2) +
   # Needed to use geom_richtext to enable 1) bolding part of the label, and adding the label to just one facet
   geom_richtext(data = text_annotation, mapping = aes(x = x, y = y, label = label, hjust = hjust),
-                size = 3,
+                size = 2,
                 fill = alpha(c("white"), 0.8),
                 # alpha = 0.8,
                 label.size = NA) +
@@ -231,9 +240,22 @@ histogram <-
                     guide = guide_legend(override.aes = list(pattern = "none")))
 
 ggsave(paste(save_path, "histogram.pdf", sep = ""),
-       width = 5.25,
-       height = 5)
+       width = 90,
+       height = 120,
+       units = "mm",
+       device = cairo_pdf)
 
+
+# =================== Figure 1: Glued Figures (1a and 1b) ===================
+
+figure_1 <- grid.arrange(calibration_facet_plot, histogram, ncol = 2)
+
+ggsave(paste(save_path, "figure_1.pdf", sep = ""), 
+       figure_1, 
+       width = 180, 
+       height = 120, 
+       units = "mm",
+       device = cairo_pdf)
 
 # =================== Figure 2: Risk distribution facet plot ===================
 
@@ -330,7 +352,7 @@ plot_data %>%
   ylab("Density") +
   # Needed to use geom_richtext to enable 1) bolding part of the label, and adding the label to just one facet
   geom_richtext(data = text_annotation, mapping = aes(x = x, y = y, label = label, hjust = hjust),
-                size = 3,
+                size = 1.75,
                 fill = alpha(c("white"), 0.8),
                 label.size = NA,
                 color = "black") +
@@ -342,15 +364,15 @@ plot_data %>%
         axis.ticks.y = element_blank(),
         axis.text.y=element_blank(),
         panel.spacing = unit(1.5, "lines"),
-        plot.margin = margin(10, 10, 10, 10, "pt")) +
+        plot.margin = margin(10, 80, 10, 80, "pt")) +
   scale_color_manual(values=group_color_map,
                      breaks = c("White", "Hispanic", "Asian", "Black")) +
-  coord_cartesian(xlim = c(0, .05), ylim = c(0, 13.5))
-
+  coord_cartesian(xlim = c(0, .05), ylim = c(0, 14))
 
 ggsave(paste(save_path, "risk_distribution.pdf", sep = ""),
-       width = 8,
-       height = 5.5)
+       width = 180,
+       height = 80,
+       units = "mm")
 
 # ====================== Figure 3b: Pareto frontier plot =======================
 
@@ -416,7 +438,8 @@ figure_data <- cleaned_survey_results %>%
   ) %>%
   mutate(plot_label = "Respondent ride allocation preferences")
 
-figure_data %>%
+survey_preferences <-
+  figure_data %>%
   ggplot(aes(x = preference_pct_black, y = proportion)) +
   geom_bar(stat='identity', width = 10, show.legend = FALSE, fill = "dimgray") +
   geom_vline(data=mean_pref_black, aes(xintercept=mean_pref, group = survey_version_long), linetype="dashed") +
@@ -430,6 +453,23 @@ figure_data %>%
 ggsave(paste(save_path, "survey_preferences.pdf", sep = ""),
        width = 5,
        height = 4)
+
+# =================== Figure 4: Glued Figures (4a and 4b) ===================
+
+blank_plot <- ggplot() + theme(axis.line = element_line(colour = "white"),
+                               panel.grid.major = element_blank(),
+                               panel.grid.minor = element_blank(),
+                               panel.border = element_blank(),
+                               panel.background = element_blank()) 
+
+figure_4 <- grid.arrange(blank_plot, survey_preferences, ncol = 2)
+
+ggsave(paste(save_path, "figure_4.pdf", sep = ""), 
+       figure_4, 
+       width = 180, 
+       height = 70, 
+       units = "mm",
+       device = cairo_pdf)
 
 
 # ==================== Figure 5: Label bias calibration plot ===================
@@ -490,7 +530,7 @@ ordered_group_names <- group_names[line_order]
 label_bias_plot_data %>%
   ggplot(aes(x=bin_avg_risk_score, y=diabetes_prev, color=race)) +
   geom_line() + 
-  geom_point() +
+  geom_point(size = 1) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
   xlab("Risk score based on biased label") +
   ylab("Diabetes rate") + 
@@ -498,12 +538,18 @@ label_bias_plot_data %>%
   scale_x_continuous(labels = scales::percent) +
   coord_cartesian(xlim = c(0,risk_score_upper_bound), ylim = c(0, 0.08)) +
   theme(legend.title = element_blank(),
-        legend.position = c(0.17, 0.83)) +
+        legend.position = c(0.12, 0.85)) +
   scale_color_manual(values=group_color_map,
-                     breaks=ordered_group_names)
+                     breaks=ordered_group_names) +
+  guides(color=guide_legend(
+    keywidth=0.15,
+    keyheight=0.15,
+    default.unit="inch")
+  )
 
 ggsave(paste(save_path, "label_bias_calibration_plot.pdf", sep = ""),
-       width = 5.25,
-       height = 5)
+       width = 88,
+       height = 80,
+       units = "mm")
 
 
