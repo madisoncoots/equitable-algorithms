@@ -368,7 +368,7 @@ plot_data %>%
                      breaks = c("White", "Hispanic", "Asian", "Black")) +
   coord_cartesian(xlim = c(0, .05), ylim = c(0, 14))
 
-ggsave(paste(save_path, "risk_distribution.pdf", sep = ""),
+ggsave(paste(save_path, "figure_2.pdf", sep = ""),
        width = 180,
        height = 80,
        units = "mm")
@@ -547,7 +547,7 @@ label_bias_plot_data %>%
     default.unit="inch")
   )
 
-ggsave(paste(save_path, "label_bias_calibration_plot.pdf", sep = ""),
+ggsave(paste(save_path, "figure_5.pdf", sep = ""),
        width = 88,
        height = 80,
        units = "mm")
