@@ -12,7 +12,6 @@ library(readr)
 library(janitor)
 library(lubridate)
 library(gridExtra)
-library(cowplot)
 
 directory_path <- dirname(rstudioapi::getActiveDocumentContext()$path)
 
@@ -239,11 +238,11 @@ histogram <-
                     labels = c("Screened", "Not screened"),
                     guide = guide_legend(override.aes = list(pattern = "none")))
 
-ggsave(paste(save_path, "histogram.pdf", sep = ""),
-       width = 90,
-       height = 120,
-       units = "mm",
-       device = cairo_pdf)
+# ggsave(paste(save_path, "histogram.pdf", sep = ""),
+#        width = 90,
+#        height = 120,
+#        units = "mm",
+#        device = cairo_pdf)
 
 
 # =================== Figure 1: Glued Figures (1a and 1b) ===================
@@ -396,8 +395,8 @@ survey_points %>%
   geom_segment(aes(x = 0.9, y = 0, xend = 0.9, yend = 520), color = "gray", linetype = "dashed", linewidth = 0.3) +
   geom_point(data = true_max, aes(x = x, y = y)) +
   geom_point(data = equalized_decision_rate, aes(x = x, y = y)) +
-  annotate("text", x = 0.3 + 0.2, y = 730 + 10, label = "Maximum appearances") + 
-  annotate("text", x = 0.5 + 0.18, y = 700 + 15, label = "Equalized decision rate") + 
+  annotate("text", x = 0.3 + 0.18, y = 730 + 10, label = "Maximum appearances", size = 2.25) + 
+  annotate("text", x = 0.5 + 0.155, y = 700 + 15, label = "Equalized decision rate", size = 2.25) + 
   ylab("Number of additional appearances") +
   xlab("Percentage of rides offered to Black residents") +
   scale_x_continuous(labels = scales::percent,
@@ -408,8 +407,9 @@ survey_points %>%
         legend.title = element_blank())
 
 ggsave(paste(save_path, "pareto_frontier.pdf", sep = ""),
-       width = 5.25,
-       height = 5) 
+       width = 80,
+       height = 80,
+       units = "mm") 
 
 # ==================== Figure 4b: Survey results histogram =====================
 
